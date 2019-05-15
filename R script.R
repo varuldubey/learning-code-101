@@ -922,3 +922,9 @@ installed.packages() #Generates list of installed packages#
 install.package() #Install package from cran#
 library() #Load a pre-installed package#
 
+#Downloading and storing data files and objects#
+download.file(url = "https://",destfile = "data/xyz.csv") #downloads file from URL and saves in the 'data' directory#
+save(us_contagious_diseases,file="data/us_contagious_diseases.csv") #saves data file from local directory or package to 'data' directory#
+load("data/us_contagious_diseases.csv") #load data file from 'data' directory#
+load("rda/objects.rda") #load objects from 'rda' directory into global environment#
+
