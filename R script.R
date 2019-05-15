@@ -917,14 +917,17 @@ filter(us_contagious_diseases,disease=="Polio",!state %in% c("Hawaii","Alaska"))
 us_avg<-filter(us_contagious_diseases,disease=="Polio",!state %in% c("Hawaii","Alaska"),!is.na(population),!is.na(count)) %>% group_by(year) %>% summarise(us_rate=sum(count)/sum(population)*10000) #creating data frame containing year wise US-average disease rate for polio#
 filter(us_contagious_diseases,disease=="Polio",!state %in% c("Hawaii","Alaska"),!is.na(population),!is.na(count)) %>% mutate(rate=count/population*10000) %>% ggplot() + geom_line(mapping=aes(x=year,y=rate,group=state),col="grey50",alpha=0.2,size=1) + geom_line(data=us_avg,mapping=aes(x=year,y=us_rate),col="black",size=1) + geom_vline(xintercept = 1950,size=1.5,col="blue") + scale_y_continuous(trans="sqrt") + ggtitle("Polio incidence in US states") #Polio incidence rates in US, with rates on y axis and years on x axis, scale of y axis converted to square root transformation, with a line showing US-average across years using second 'geom_line' geometry and all mapping done locally#
 
-#Installing and loading packages in R#
+#Installing and loading packages#
 installed.packages() #Generates list of installed packages#
 install.package() #Install package from cran#
 library() #Load a pre-installed package#
 
-#Downloading and storing data files and objects#
-download.file(url = "https://",destfile = "data/xyz.csv") #downloads file from URL and saves in the 'data' directory#
-save(us_contagious_diseases,file="data/us_contagious_diseases.csv") #saves data file from local directory or package to 'data' directory#
-load("data/us_contagious_diseases.csv") #load data file from 'data' directory#
-load("rda/objects.rda") #load objects from 'rda' directory into global environment#
+#Downloading, storing and loading data files and objects#
+download.file(url = "https://",destfile = "data/xyz.csv") #Downloads file from URL and saves in the 'data' directory#
+save(us_contagious_diseases,file="data/us_contagious_diseases.csv") #Saves data file/object from local directory or package or global environment to 'data' directory#
+save.image(list = ls(all.names = T), file="rda/xyz.rda", envir=.GlobalEnv) #Saves all objects stored in global environment to 'rda' directory#
+load("data/us_contagious_diseases.csv") #Load data file from 'data' directory#
+load("rda/objects.rda") #Load objects from 'rda' directory into global environment#
 
+#storing plots#
+ggsave("figs/polio_incidence.png") #store current plot into 'figs' directory#
