@@ -930,4 +930,12 @@ load("data/us_contagious_diseases.csv") #Load data file from 'data' directory#
 load("rda/objects.rda") #Load objects from 'rda' directory into global environment#
 
 #storing plots#
-ggsave("figs/polio_incidence.png") #store current plot into 'figs' directory#
+ggsave("figs/polio_incidence.png") #save current plot into 'figs' directory#
+
+#Importing Datasets#
+path<-system.file("extdata",package = "dslabs") #Extract full path of a directory in a package#
+list.files(path) #List names of files in a directory#
+file_path<-file.path(path,"murders.csv") #Extract full path of a file/directory in a given path (to a directory)#
+getwd() #Print the current working directory#
+file.copy(file_path,getwd()) #Copy a file from one path (to a directory) to another path (to a directory)#
+
