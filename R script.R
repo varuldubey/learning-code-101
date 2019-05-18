@@ -924,8 +924,8 @@ library() #Load a pre-installed package#
 
 #Downloading, storing and loading data files and objects#
 download.file(url = "https://",destfile = "data/xyz.csv") #Downloads file from URL and saves in the 'data' directory#
-save(us_contagious_diseases,file="data/us_contagious_diseases.csv") #Saves data file/object from local directory or package or global environment to 'data' directory#
-save.image(list = ls(all.names = T), file="rda/xyz.rda", envir=.GlobalEnv) #Saves all objects stored in global environment to 'rda' directory#
+save(us_contagious_diseases,file="data/us_contagious_diseases.csv") #Saves data file/object from package or global environment to a local directory#
+save.image(file="rda/objects.rda") #Saves all objects stored in global environment to 'rda' directory#
 load("data/us_contagious_diseases.csv") #Load data file from 'data' directory#
 load("rda/objects.rda") #Load objects from 'rda' directory into global environment#
 
@@ -938,4 +938,3 @@ list.files(path) #List names of files in a directory#
 file_path<-file.path(path,"murders.csv") #Extract full path of a file/directory in a given path (to a directory)#
 getwd() #Print the current working directory#
 file.copy(file_path,getwd()) #Copy a file from one path (to a directory) to another path (to a directory)#
-
