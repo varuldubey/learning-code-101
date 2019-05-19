@@ -926,11 +926,7 @@ library() #Load a pre-installed package#
 download.file(url = "https://",destfile = "data/xyz.csv") #Downloads file from URL and saves in the 'data' directory#
 save(us_contagious_diseases,file="data/us_contagious_diseases.csv") #Saves data file/object from package or global environment to a local directory#
 save.image(file="rda/objects.rda") #Saves all objects stored in global environment to 'rda' directory#
-load("data/us_contagious_diseases.csv") #Load data file from 'data' directory#
 load("rda/objects.rda") #Load objects from 'rda' directory into global environment#
-
-#storing plots#
-ggsave("figs/polio_incidence.png") #save current plot into 'figs' directory#
 
 #Importing Datasets#
 path<-system.file("extdata",package = "dslabs") #Extract full path of a directory in a package#
@@ -938,22 +934,31 @@ list.files(path) #List names of files in a directory#
 filepath<-file.path(path,"life-expectancy-and-fertility-two-countries-example.csv") #Extract full path of a file/directory in a given path (to a directory)#
 getwd() #Print the current working directory#
 file.copy(file_path,getwd()) #Copy a file from one path (to a directory) to another path (to a directory)#
+raw_data<-read_csv(filepath) #Load a dataset into an object in global environment#
 
 #Packages to be installed#
+car
 dplyr
 dslabs
-car
-psych
 ggplot2
+ggrepel
 ggthemes
 gridExtra
 knitr
-rmarkdown
 NHANES
+psych
 RColorBrewer
 readr
 readxl
 rlang
+rmarkdown
 SDSFoundations
+tidyr
 
 #Data Wrangling#
+#converting from wide form to tidy form#
+tidy_data<-gather(data=wide_data, key=key, value=value, -country)
+tidy_data<-separate(data=tidy_data,col = key,into = c("year","variable"),sep = "_",extra = "merge")
+tidy_data<-spread(data=tidy_data, key=variable, value=value)
+tidy_data<-mutate(tidy_data,year=as.numeric(year))
+
