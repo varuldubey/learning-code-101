@@ -957,8 +957,19 @@ tidyr
 
 #Data Wrangling#
 #converting from wide form to tidy form#
-tidy_data<-gather(data=wide_data, key=key, value=value, -country)
-tidy_data<-separate(data=tidy_data,col = key,into = c("year","variable"),sep = "_",extra = "merge")
-tidy_data<-spread(data=tidy_data, key=variable, value=value)
-tidy_data<-mutate(tidy_data,year=as.numeric(year))
+tidy_data<-gather(data=wide_data, key=key, value=value, -country) #Gathers data from multiple column headers (all columns except 'country') and puts it in a single column ('key'), also arranges the data values within the columns to a single column ('value')#
+tidy_data<-separate(data=tidy_data,col = key,into = c("year","variable"),sep = "_",extra = "merge") #Splits the variables in 'key' column, separated by '_', to multiple columns ('year' and 'variable'),  also merging additional variables separated by '_'#
+tidy_data<-spread(data=tidy_data, key=variable, value=value) #Spreads the variable in single column ('variable') to multiple columns (based on number of variables), also arranges data values in 'value' column to within the multiple variable columns#
+tidy_data<-mutate(tidy_data,year=as.numeric(year)) #converting the 'year' varibale back to numeric, previously converted to character by gather function#
 
+#combining tables#
+murder_polls<-left_join(murder,polls) #Returns a table that combines two data tables by matching rows of a common variable ('state') in first data table ('murder') that are also present in second data table ('polls'), returning 'NA' for rows for which data is absent in the second table#
+polls_murder<-right_join(murder,polls) #Returns a table that combines two data tables by matching rows of a common variable ('state') in second data table ('polls') that are also present in first data table ('murder'), returning 'NA' for rows for which data is absent in the first table#
+murder_polls_int<-inner_join(murder,polls) #Returns a table that combines two data tables by matching rows of a common variable ('state') that are present in both data tables#
+murder_polls_union<-full_join(murder,polls) #Returns a table that combines two data tables by matching rows of a common variable ('state') that are present in either of the two data tables, returning 'NA' for rows for which data is absent in either table#
+
+#filtering tables#
+murder_polls_semi<-semi_join(murder,polls) #Returns a table by matching rows of a common variable ('state') in first data table ('murder') that are also present in second data table ('polls'), without copying the variables from the second table#
+murder_polls_anti<-anti_join(murder,polls) #Returns a table by matching rows of a common variable ('state') in first data table ('murder') that are not present in second data table ('polls'), without copying the variables from the second table#
+
+#combining vectors/tables using set operators#
