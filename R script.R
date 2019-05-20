@@ -973,3 +973,8 @@ murder_polls_semi<-semi_join(murder,polls) #Returns a table by matching rows of 
 murder_polls_anti<-anti_join(murder,polls) #Returns a table by matching rows of a common variable ('state') in first data table ('murder') that are not present in second data table ('polls'), without copying the variables from the second table#
 
 #combining vectors/tables using set operators#
+intersect(past_country,present_country) #Finds common values between two vectors#
+murder_polls_intersect<-intersect(murder[1:5,],murder[3:7,]) #Finds common rows between two tables whose columns match, else returns error highlighting which columns don't match#
+murder_polls_union<-union(murder[1:5,],murder[3:7,]) #Finds rows present in either tables and combines them if their columns match, else returns error highlighting which columns don't match#
+murder_polls_setdiff<-setdiff(murder[1:5,],murder[3:7,]) #Finds rows present in first table ('murder[1:5]') that are not in second table ('murder[3:7]') if their columns match, else returns error highlighting which columns don't match#
+setequal(murder[1:5,],murder[3:7,]) #Tells us if two tables are equal or not regardless of order of rows or columns#
