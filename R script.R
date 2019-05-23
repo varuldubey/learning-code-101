@@ -952,7 +952,9 @@ readr
 readxl
 rlang
 rmarkdown
+rvest
 SDSFoundations
+stringr
 tidyr
 
 #Data Wrangling#
@@ -978,3 +980,20 @@ murder_polls_intersect<-intersect(murder[1:5,],murder[3:7,]) #Finds common rows 
 murder_polls_union<-union(murder[1:5,],murder[3:7,]) #Finds rows present in either tables and combines them if their columns match, else returns error highlighting which columns don't match#
 murder_polls_setdiff<-setdiff(murder[1:5,],murder[3:7,]) #Finds rows present in first table ('murder[1:5]') that are not in second table ('murder[3:7]') if their columns match, else returns error highlighting which columns don't match#
 setequal(murder[1:5,],murder[3:7,]) #Tells us if two tables are equal or not regardless of order of rows or columns#
+
+#Web scraping#
+webpage_code<-read_html("https://en.wikipedia.org/wiki/Gun_violence_in_the_United_States_by_state") #Saves html code from a webpage into an object#
+nodes<-html_nodes(webpage_code,"table") #Extracting all nodes of type 'table' from html code into an object#
+nodes<-nodes[[2]] #Selecting the required node from all nodes of type 'table'#
+webpage_table<-html_table(nodes) #Converting html table into a data frame#
+
+#Renaming variables#
+webpage_table<-rename(webpage_table,state="State",population="Population(total inhabitants) (2015) [2]",total="Murders andNonnegligentManslaughter(total deaths) (2015) [1]",murders="Murders(total deaths) (2015) [3]",gun_murders="Gun Murders(total deaths) (2015) [3]",gun_ownership="GunOwnership(%) (2013) [4]",total_rate="Murder andNonnegligentManslaughterRate(per 100,000) (2015)",murder_rate="Murder Rate(per 100,000) (2015)",gun_murder_rate="GunMurder Rate(per 100,000) (2015)") #Renaming variables in a data table#
+
+#String Processing#
+a <- '5"' #Define string having single quote within double quotes#
+a1 <- "5'" #Define string having double quote within single quotes#
+a2 <- "5\"5'" #Define string having both single and double quote by escaping one of the quotes using '\'#
+cat(a2) #Print strings without quotation marks#
+summarize_all(webpage_table,.funs = function(x) any(str_detect(string = x,pattern = ","))) #Detects if each variable in a data table haa at least one value with the given pattern#
+webpage_table <- mutate_at(webpage_table,2:3,parse_number) #Replaces commas from data values in columns 2 and 3 and convert the values from character to numeric#
