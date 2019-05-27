@@ -1005,12 +1005,46 @@ index<-!is.na(inches) & ((inches>=50 & inches<=84) | (inches/2.54>=50 & inches/2
 not_in_inches_or_cm<-filter(rep_heights,not_inches_or_cm(height)) %>% .$height #Filtering reported heights based on 'not_inches_or_cm' function and storing heights variable in an object#
 str_view(not_in_inches_or_cm,"ft|foot|feet|inches") #Shows the first instance where a given pattern (Regex) matches in a string, to check whether the defined pattern is working correctly#
 str_view_all(not_in_inches_or_cm,"\\d") #Shows all the instances where a given pattern (Regex) matches in a string#
-pattern<-"^[4-7]\\s*'\\s*\\d{1,2}$" #Defines a Regex pattern that starts ('^' anchor) with a digit between 4-7 ('[]' character class), then has none or more spaces ('*' quantifier),then has the feet symbol,then none or more spaces ('*' quantifier), and finally ends ('$' anchor) with 1 or 2 digits ('{}' quantifier)#
+pattern<-"^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$" #Defines a Regex pattern that starts ('^' anchor) with a digit between 4-7 ('[]' character class), then has none or more spaces ('*' quantifier),then has the feet symbol,then none or more spaces ('*' quantifier), and finally ends ('$' anchor) with 1 or 2 digits ('{}' quantifier)#
 sum((str_detect(string = not_in_inches_or_cm,pattern))) #Calculates number of height values that match the defined pattern#
 str_subset(not_in_inches_or_cm,"inch|feet|foot|ft|''|\\s+|\\.") #Subsets the height values that match the given pattern#
 pattern_with_group<-"^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$" #Defines Regex pattern using groups where group 1 consists of string that starts with one digit b/w 4-7 and group 2 consists of none or more digits at the end, and in between the groups there is either a ',' or '.' or one or more spaces ('+' quantifier)#
 str_extract(not_in_inches_or_cm,pattern_with_group) #Extracts strings that match the defined pattern and returns 'NA' for the ones that don't match#
 str_match(not_in_inches_or_cm,pattern_with_group) #Extracts the two groups defined in the pattern separately after matching the strings with the defined pattern#
-converted<-str_replace(not_in_inches_or_cm,"feet|foot|ft","'") %>% str_replace("inches|in|''|\\|\"","") %>% str_replace(pattern_with_group,"\\1'\\2") #Replaces 'feet,foot,ft' with feet symbol ('), 'inches,in,'',"' by empty character, and 'pattern_with_group' by first group followed by feet symbol followed by second group, then stores results in an object#
+convert_format <- function(s){
+  s %>%
+    str_replace("feet|foot|ft", "'") %>% #Replaces 'feet,foot,ft' with feet symbol (')
+    str_replace_all("inches|in|''|\"|cm|and", "") %>% #Replaces 'inches,in,'',",cm,and' by empty character
+    str_replace(pattern_with_group, "\\1'\\2") %>% #Replaces 'pattern_with_group' by first group followed by feet symbol followed by second group
+    str_replace("^([56])'?$", "\\1'0") %>% #Adds '0' as inches after feet symbol when feet value is either 5 or 6 followed by none or one feet symbol
+    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>% #Changes european decimal format for meters (x,y) to standard format for meters (x.y) where x is either 1 or 2
+    str_trim() #Removes extra spaces from the begining or end of the string
+} #Defines a function that replaces most patterns and converts them to "feet'inches" format#
+words_to_numbers <- function(s){
+  str_to_lower(s) %>%
+    str_replace_all("zero", "0") %>%
+    str_replace_all("one", "1") %>%
+    str_replace_all("two", "2") %>%
+    str_replace_all("three", "3") %>%
+    str_replace_all("four", "4") %>%
+    str_replace_all("five", "5") %>%
+    str_replace_all("six", "6") %>%
+    str_replace_all("seven", "7") %>%
+    str_replace_all("eight", "8") %>%
+    str_replace_all("nine", "9") %>%
+    str_replace_all("ten", "10") %>%
+    str_replace_all("eleven", "11")
+} #Defines a function that first converts all uppercase letters to lowercase and then replaces the numbers spelled in letters by their numeric characters#
+converted<-words_to_numbers(not_in_inches_or_cm) %>% convert_format()
 index<-str_detect(converted,pattern) #Detects matching patterns in 'converted' vecror, and stores in logical vector#
 converted[!index] #Indexes 'converted' vector by 'index' vector to show cases that do not match the defined pattern#
+rep_heights<- mutate(rep_heights,converted_heights=words_to_numbers(height) %>% convert_format()) %>% #keeps original 'height' column to compare and add another column with heights converted to "feet'inches" pattern
+              extract(col = converted_heights,into = c("feet","inches"),regex = pattern,remove = F) %>% #Extracts values from converted heights and splits them into two groups (feet and inches) based on defined grouped pattern
+              mutate_at(4:6,as.numeric) %>% #Converts columns 'converted_heights','feet',and 'inches' into numeric class to perform numerical operations on the values
+              mutate(heights_in_inches=12*feet+inches) %>% #Creates new column 'heights in inches' defined by arithematic operations on 'feet' and 'inches'
+              mutate(heights_in_inches=case_when(!is.na(converted_heights) & converted_heights>=50 & converted_heights<=84 ~ converted_heights, #Redefines 'heights in inches' based on values in 'converted heights' that are in inches
+                                                 !is.na(converted_heights) & (converted_heights/2.54)>=50 & converted_heights/2.54<=84 ~ converted_heights/2.54, #Redifines 'heights in inches' based on values in 'converted heights' that are in centimeters
+                                                 !is.na(converted_heights) & (converted_heights*100/2.54)>=50 & (converted_heights*100/2.54)<=84 ~ converted_heights*100/2.54, #Redifines 'heights in inches' based on values in 'converted heights' that are in meters
+                                                 is.na(converted_heights) & inches<12 & heights_in_inches>=50 & heights_in_inches<=84 ~ heights_in_inches, #Redifines 'heights in inches' based on values that were converted to inches from "feet'inches" format
+                                                 TRUE ~ as.numeric(NA))) %>% #Redifines remaining cases in 'heights in inches' as 'NA' converted to numeric class
+              select(-converted_heights) #Removes column 'converted heights' from the data table#
