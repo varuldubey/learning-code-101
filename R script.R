@@ -944,6 +944,7 @@ ggplot2
 ggrepel
 ggthemes
 gridExtra
+htmlwidgets
 knitr
 NHANES
 psych
@@ -995,5 +996,21 @@ a <- '5"' #Define string having single quote within double quotes#
 a1 <- "5'" #Define string having double quote within single quotes#
 a2 <- "5\"5'" #Define string having both single and double quote by escaping one of the quotes using '\'#
 cat(a2) #Print strings without quotation marks#
-summarize_all(webpage_table,.funs = function(x) any(str_detect(string = x,pattern = ","))) #Detects if each variable in a data table haa at least one value with the given pattern#
+summarize_all(webpage_table,.funs = function(x) {any(str_detect(string = x,pattern = ","))}) #Detects if each variable in a data table has at least one value with the given pattern#
 webpage_table <- mutate_at(webpage_table,2:3,parse_number) #Replaces commas from data values in columns 2 and 3 and convert the values from character to numeric#
+not_inches_or_cm<-function(x){inches<-suppressWarnings(as.numeric(x))
+index<-!is.na(inches) & ((inches>=50 & inches<=84) | (inches/2.54>=50 & inches/2.54<=84))
+!index
+} #Defines a function that returns TRUE when a reported value is neither in inches nor in centimters, or if in inches then not between 50 and 84 inches (height range of 99.9999% population); Suppresses Warnings when non-numeric entries are converted to 'NA'#
+not_in_inches_or_cm<-filter(rep_heights,not_inches_or_cm(height)) %>% .$height #Filtering reported heights based on 'not_inches_or_cm' function and storing heights variable in an object#
+str_view(not_in_inches_or_cm,"ft|foot|feet|inches") #Shows the first instance where a given pattern (Regex) matches in a string, to check whether the defined pattern is working correctly#
+str_view_all(not_in_inches_or_cm,"\\d") #Shows all the instances where a given pattern (Regex) matches in a string#
+pattern<-"^[4-7]\\s*'\\s*\\d{1,2}$" #Defines a Regex pattern that starts ('^' anchor) with a digit between 4-7 ('[]' character class), then has none or more spaces ('*' quantifier),then has the feet symbol,then none or more spaces ('*' quantifier), and finally ends ('$' anchor) with 1 or 2 digits ('{}' quantifier)#
+sum((str_detect(string = not_in_inches_or_cm,pattern))) #Calculates number of height values that match the defined pattern#
+str_subset(not_in_inches_or_cm,"inch|feet|foot|ft|''|\\s+|\\.") #Subsets the height values that match the given pattern#
+pattern_with_group<-"^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$" #Defines Regex pattern using groups where group 1 consists of string that starts with one digit b/w 4-7 and group 2 consists of none or more digits at the end, and in between the groups there is either a ',' or '.' or one or more spaces ('+' quantifier)#
+str_extract(not_in_inches_or_cm,pattern_with_group) #Extracts strings that match the defined pattern and returns 'NA' for the ones that don't match#
+str_match(not_in_inches_or_cm,pattern_with_group) #Extracts the two groups defined in the pattern separately after matching the strings with the defined pattern#
+converted<-str_replace(not_in_inches_or_cm,"feet|foot|ft","'") %>% str_replace("inches|in|''|\\|\"","") %>% str_replace(pattern_with_group,"\\1'\\2") #Replaces 'feet,foot,ft' with feet symbol ('), 'inches,in,'',"' by empty character, and 'pattern_with_group' by first group followed by feet symbol followed by second group, then stores results in an object#
+index<-str_detect(converted,pattern) #Detects matching patterns in 'converted' vecror, and stores in logical vector#
+converted[!index] #Indexes 'converted' vector by 'index' vector to show cases that do not match the defined pattern#
