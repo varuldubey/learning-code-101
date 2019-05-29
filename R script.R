@@ -897,7 +897,7 @@ filter(gap_minder,year %in% c(1970,2010), !is.na(per_capita_gdp)) %>% mutate(per
 filter(gap_minder,year %in% c(1970,2010),country %in% countries, !is.na(per_capita_gdp)) %>% mutate(per_capita_gdp_pd = per_capita_gdp/365,group = ifelse(region %in% west,"western","Rest of the world")) %>% ggplot(aes(x = per_capita_gdp_pd, y = ..count.., fill = group)) + geom_density(alpha = 0.2, bw = 0.75) + scale_x_continuous(trans = "log2") + facet_wrap(.~year) #Density plots colour mapped by group(WestvsRest), faceted by year, showing counts instead of densities on y-axis, with increased smoothening#
 
 gap_minder<-gap_minder %>% mutate(group = case_when(.$region %in% west ~ "Western",.$region %in% c("Eastern Asia","South-Eastern Asia") ~ "East Asia",.$region %in% c("Caribbean","Central America","South America") ~ "Latin America",.$continent == "Africa" & .$region != "Northern Africa" ~ "Sub-Saharan Africa", TRUE ~ "Others")) #Creating new set of regions using 'case_when' function#
-gap_minder$group<-factor(gap_minder$group,levels=c("Others","Latin America","East Asia","Sub-Saharan Africa","Western")) #Redefining regions created above as factors with levels in a specific order#
+gap_minder$group<-gap_minder$group %>% factor(levels=c("Others","Latin America","East Asia","Sub-Saharan Africa","Western")) #Redefining regions created above as factors with levels in a specific order#
 filter(gap_minder,year %in% c(1970,2010),country %in% countries, !is.na(per_capita_gdp)) %>% group_by(year) %>% mutate(per_capita_gdp_pd = per_capita_gdp/365, weight = population/sum(population)*2) %>% ungroup() %>% ggplot(aes(x = per_capita_gdp_pd, fill = group, weight = weight)) + geom_density(alpha = 0.2, bw = 0.75, position = "stack") + scale_x_continuous(trans = "log2") + facet_wrap(.~year) #Density plots colour mapped by regions, stacked over each other, each year given weights proportional to the size of the population, and faceted by year#
 
 #Bar plot#
@@ -933,7 +933,7 @@ path<-system.file("extdata",package = "dslabs") #Extract full path of a director
 list.files(path) #List names of files in a directory#
 filepath<-file.path(path,"life-expectancy-and-fertility-two-countries-example.csv") #Extract full path of a file/directory in a given path (to a directory)#
 getwd() #Print the current working directory#
-file.copy(file_path,getwd()) #Copy a file from one path (to a directory) to another path (to a directory)#
+file.copy(filepath,getwd()) #Copy a file from one path (to a directory) to another path (to a directory)#
 raw_data<-read_csv(filepath) #Load a dataset into an object in global environment#
 
 #Packages to be installed#
@@ -948,6 +948,7 @@ htmlwidgets
 knitr
 NHANES
 psych
+purrr
 RColorBrewer
 readr
 readxl
@@ -964,6 +965,7 @@ tidy_data<-gather(data=wide_data, key=key, value=value, -country) #Gathers data 
 tidy_data<-separate(data=tidy_data,col = key,into = c("year","variable"),sep = "_",extra = "merge") #Splits the variables in 'key' column, separated by '_', to multiple columns ('year' and 'variable'),  also merging additional variables separated by '_'#
 tidy_data<-spread(data=tidy_data, key=variable, value=value) #Spreads the variable in single column ('variable') to multiple columns (based on number of variables), also arranges data values in 'value' column to within the multiple variable columns#
 tidy_data<-mutate(tidy_data,year=as.numeric(year)) #converting the 'year' varibale back to numeric, previously converted to character by gather function#
+unnest(data=,2) #Converts each element in a list-column into its own row#
 
 #combining tables#
 murder_polls<-left_join(murder,polls) #Returns a table that combines two data tables by matching rows of a common variable ('state') in first data table ('murder') that are also present in second data table ('polls'), returning 'NA' for rows for which data is absent in the second table#
@@ -1048,3 +1050,7 @@ rep_heights<- mutate(rep_heights,converted_heights=words_to_numbers(height) %>% 
                                                  is.na(converted_heights) & inches<12 & heights_in_inches>=50 & heights_in_inches<=84 ~ heights_in_inches, #Redifines 'heights in inches' based on values that were converted to inches from "feet'inches" format
                                                  TRUE ~ as.numeric(NA))) %>% #Redifines remaining cases in 'heights in inches' as 'NA' converted to numeric class
               select(-converted_heights) #Removes column 'converted heights' from the data table#
+mydf<-str_split(string = mur,pattern = ",", simplify = T) %>% #Splits values separated by commas (,) in each string and returns a matrix of strings using simplify
+      as_data_frame() %>% #Converts the matrix returned by str_split into data frame
+      mutate_all(parse_guess) #Guesses and assigns a class to each variable
+gap_minder<-mutate(gap_minder,country=recode(country, "Antigua and Barbuda"="Barbuda", "Dominican Republic"="DR", "St. Vincent and the Grenadines"="St. Vincent", "Trinidad and Tobago"="Trinidad")) %>% as_data_frame() #Recodes names to shorter versions, usually required while plotting#
